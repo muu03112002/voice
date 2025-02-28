@@ -1,9 +1,11 @@
 // discord.js バージョン14用のコード
-
 const { Client, GatewayIntentBits, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder } = require('discord.js');
 
-// Replitの環境変数からトークンを取得
+// 環境変数からトークンを取得
 const token = process.env.TOKEN;
+
+// ポート設定（環境変数またはデフォルト値）
+const PORT = process.env.PORT || 3000;
 
 // クライアントの初期化
 const client = new Client({
@@ -80,7 +82,7 @@ client.on('interactionCreate', async interaction => {
   if (interaction.customId === 'vc_name_modal') {
     // 入力された名前を取得
     const vcName = interaction.fields.getTextInputValue('vcNameInput');
-
+    
     try {
       // ボイスチャンネルを作成
       const voiceChannel = await interaction.guild.channels.create({
@@ -119,7 +121,7 @@ function checkEmptyChannel(channel) {
     try {
       // チャンネルをフェッチして最新の状態を取得
       const fetchedChannel = await client.channels.fetch(channel.id);
-
+      
       // メンバーがいなくなったら
       if (fetchedChannel.members.size === 0) {
         // 通知を送信（関連テキストチャンネルがあれば）
@@ -127,7 +129,7 @@ function checkEmptyChannel(channel) {
           const textChannels = fetchedChannel.guild.channels.cache.filter(
             ch => ch.type === 0 && ch.name.includes(fetchedChannel.name)
           );
-
+          
           if (textChannels.size > 0) {
             await textChannels.first().send(`ボイスチャンネル「${fetchedChannel.name}」は空になりました。10秒後に削除されます。`);
           } else {
@@ -135,7 +137,7 @@ function checkEmptyChannel(channel) {
             const categoryTextChannels = fetchedChannel.guild.channels.cache.filter(
               ch => ch.type === 0 && ch.parent === fetchedChannel.parent
             );
-
+            
             if (categoryTextChannels.size > 0) {
               await categoryTextChannels.first().send(`ボイスチャンネル「${fetchedChannel.name}」は空になりました。10秒後に削除されます。`);
             }
@@ -143,7 +145,7 @@ function checkEmptyChannel(channel) {
         } catch (error) {
           console.error('通知の送信中にエラーが発生しました:', error);
         }
-
+        
         // 10秒待機
         setTimeout(async () => {
           try {
@@ -156,7 +158,7 @@ function checkEmptyChannel(channel) {
           } catch (error) {
             console.error('チャンネル削除中にエラーが発生しました:', error);
           }
-
+          
           // このチャンネルのチェックを停止
           clearInterval(interval);
         }, 10000); // 10秒
@@ -169,17 +171,16 @@ function checkEmptyChannel(channel) {
   }, 5000); // 5秒ごとにチェック
 }
 
-// UptimeRobot用のWebサーバーをセットアップ
+// Webサーバーのセットアップ (Koyeb用)
 const express = require('express');
 const app = express();
-const port = 3000;
 
 app.get('/', (req, res) => {
   res.send('Bot is running!');
 });
 
-app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Botにログイン
